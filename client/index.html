@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>GStreamer RTP producer example</title>
+  <style>
+    video {
+      width: 400px
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <input id="selectfile" type="file" multiple="multiple">
+    <button name="streamfiles" onclick="streamlocalfiles()">stream files</button>
+
+  </div>
+  local file stream
+
+  <div id="localfilestream">
+
+  </div>    remote file streams
+
+  <div id="remotefilestream">
+  </div>
+
+  <div>
+
+    <div>
+
+      <button>setup</button>
+      <input id="consumerid" type="text" placeholder="ID to consume">
+      <button id="consume">consume</button>
+    </div>
+  </div>
+
+
+  <script src="./src/main.js"></script>
+
+  <script>
+    window.VideoTracks=[]
+    localvideos = document.getElementById('localfilestream')
+    input = document.getElementById('selectfile')
+
+    var URL = window.URL || window.webkitURL
+
+    function streamlocalfiles() {
+      for (i = 0; i < input.files.length; i++) {
+        videoelement = document.createElement('video')
+        localvideos.appendChild(videoelement)
+        var file = input.files[i];
+        var type = file.type
+        var canPlay = videoelement.canPlayType(type)
+        if (canPlay === '') canPlay = 'no'
+        var message = 'Can play type "' + type + '": ' + canPlay
+        var isError = canPlay === 'no'
+
+        if (isError) {
+          return
+        }
+        var fileURL = URL.createObjectURL(file)
+        videoelement.src = fileURL
+        videoelement.play()
+      }
+
+      var videoElements = document.getElementById("localfilestream").children
+      var videoStreams = []
+      console.log(videoElements)
+      for (i = 0; i < videoElements.length; i++) {
+        videoStreams.push(videoElements[i].mozCaptureStream(60))
+      }
+
+      window.setTimeout(() => {
+      for(var j=0;j<videoStreams.length;j++){
+      window.VideoTracks[j]=videoStreams[j].getVideoTracks()[0]
+      }
+       window.startProducer()
+      }, 2000)
+
+    }
+
+  </script>
+</body>
+
+</html>
